@@ -13,6 +13,7 @@ class DataReader {
     private final ConsolePrinter printer = new ConsolePrinter();
 
     public Task readAndCreateTask() {
+        printer.printLine("Create a new task");
         printer.printLine("Name");
         String name = scanner.nextLine();
         printer.printLine("Description");
@@ -48,7 +49,7 @@ class DataReader {
         }
     }
 
-    private LocalDate readDate() {
+    LocalDate readDate() {
         boolean dateOk = false;
         LocalDate date = null;
 
@@ -80,6 +81,10 @@ class DataReader {
         } while (!intOk);
 
         return value;
+    }
+
+    String readLine() {
+        return scanner.nextLine();
     }
 
     void close() {
