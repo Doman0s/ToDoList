@@ -1,4 +1,9 @@
+package io;
+
 import exception.InvalidPriorityException;
+import data.Priority;
+import data.Task;
+import io.file.FileManagerType;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -6,11 +11,15 @@ import java.time.format.DateTimeParseException;
 import java.util.InputMismatchException;
 import java.util.Scanner;
 
-class DataReader {
+public class DataReader {
     private final static DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     private final Scanner scanner = new Scanner(System.in);
-    private final ConsolePrinter printer = new ConsolePrinter();
+    private final ConsolePrinter printer;
+
+    public DataReader(ConsolePrinter printer) {
+        this.printer = printer;
+    }
 
     public Task readAndCreateTask() {
         printer.printLine("Create a new task");
@@ -21,13 +30,13 @@ class DataReader {
         printer.printLine("Deadline - format (YYYY-MM-DD)");
         LocalDate deadline = readDate();
         printer.printLine("Priority");
+        printAllPriorities();
         Priority priority = readPriority();
 
         return new Task(name, description, deadline, priority);
     }
 
     private Priority readPriority() {
-        printAllPriorities();
         boolean priorityOk = false;
         Priority priority = null;
 
@@ -49,14 +58,18 @@ class DataReader {
         }
     }
 
-    LocalDate readDate() {
+    public LocalDate readDate() {
         boolean dateOk = false;
         LocalDate date = null;
 
         do {
             try {
                 date = LocalDate.parse(scanner.nextLine(), FORMATTER);
-                dateOk = true;
+                if (date.isBefore(LocalDate.now())) {
+                    printer.printLine("Deadline date must be in the future.");
+                } else {
+                    dateOk = true;
+                }
             } catch (DateTimeParseException e) {
                 printer.printLine("Incorrect date, required format (YYYY-MM-DD), try again.");
             }
@@ -65,7 +78,15 @@ class DataReader {
         return date;
     }
 
-    int getInt() {
+    public FileManagerType readFileManagerType() {
+        printer.printLine("Specify in what form you want to read and write data.");
+        for (FileManagerType value : FileManagerType.values()) {
+            printer.printLine(value.toString());
+        }
+        return FileManagerType.createFromInt(getInt());
+    }
+
+    public int getInt() {
         boolean intOk = false;
         int value = 0;
 
@@ -83,11 +104,11 @@ class DataReader {
         return value;
     }
 
-    String readLine() {
+    public String readLine() {
         return scanner.nextLine();
     }
 
-    void close() {
+    public void close() {
         scanner.close();
     }
 }

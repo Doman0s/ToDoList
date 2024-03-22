@@ -1,9 +1,12 @@
+package data;
+
 import exception.DeadlineDateMustBeFuture;
 import exception.TaskNameCantBeEmptyOrNull;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 
-class Task implements Comparable<Task> {
+public class Task implements Comparable<Task>, Serializable {
     private String name;
     private String description;
     private final LocalDate creationDate;
@@ -11,13 +14,18 @@ class Task implements Comparable<Task> {
     private Status status;
     private Priority priority;
 
-    public Task(String name, String description, LocalDate deadline, Priority priority) {
+    public Task(String name, String description, LocalDate creationDate,
+                LocalDate deadline, Status status, Priority priority) {
         setName(name);
         this.description = description;
-        this.creationDate = LocalDate.now();
+        this.creationDate = creationDate;
         setDeadline(deadline);
-        this.status = Status.TO_DO;
+        this.status = status;
         this.priority = priority;
+    }
+
+    public Task(String name, String description, LocalDate deadline, Priority priority) {
+        this(name, description, LocalDate.now(), deadline, Status.TO_DO, priority);
     }
 
     public String getName() {
@@ -26,7 +34,7 @@ class Task implements Comparable<Task> {
 
     public void setName(String name) {
         if (name == null || name.isEmpty())
-            throw new TaskNameCantBeEmptyOrNull("Task name cannot be empty.");
+            throw new TaskNameCantBeEmptyOrNull("data.Task name cannot be empty.");
         this.name = name;
     }
 
@@ -68,6 +76,15 @@ class Task implements Comparable<Task> {
         this.priority = priority;
     }
 
+    public String toCsv() {
+        return name + ";" +
+                description + ";" +
+                creationDate + ";" +
+                deadline + ";" +
+                status.name() + ";" +
+                priority.name() + ";";
+    }
+
     @Override
     public int compareTo(Task task) {
         return -priority.compareTo(task.getPriority());
@@ -75,13 +92,10 @@ class Task implements Comparable<Task> {
 
     @Override
     public String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("Name: ").append(name).append("\n")
-                .append("Description: ").append(description).append("\n")
-                .append("Deadline: ").append(deadline).append("\n")
-                .append("Status: ").append(status.name()).append("\n")
-                .append("Priority: ").append(priority.name());
-
-        return builder.toString();
+        return "Name: " + name + " | " +
+                "Description: " + description + " | " +
+                "Deadline: " + deadline + " | " +
+                "Status: " + status.name() + " | " +
+                "Priority: " + priority.name();
     }
 }

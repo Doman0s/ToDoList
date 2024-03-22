@@ -1,6 +1,8 @@
+package data;
+
 import exception.InvalidPriorityException;
 
-enum Priority {
+public enum Priority {
     LOW(1),
     MEDIUM(2),
     HIGH(3),
@@ -12,7 +14,7 @@ enum Priority {
         this.value = value;
     }
 
-    static Priority createFromInt(int value) {
+    public static Priority createFromInt(int value) {
         try {
             return values()[value - 1];
         } catch (ArrayIndexOutOfBoundsException e) {

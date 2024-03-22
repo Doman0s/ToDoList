@@ -1,8 +1,12 @@
+package io;
+
+import data.Task;
+
 import java.time.LocalDate;
 import java.util.*;
 
-class ConsolePrinter {
-    void printLine(String line) {
+public class ConsolePrinter {
+    public void printLine(String line) {
         System.out.println(line);
     }
 
@@ -17,10 +21,21 @@ class ConsolePrinter {
         }
     }
 
-    void printTasks(Collection<Task> tasks) {
+    public void printTasks(Collection<Task> tasks) {
+        if (tasks == null || tasks.isEmpty())
+            printLine("No tasks found.");
+        else
+          tasks.stream().map(Task::toString).forEach(this::printLine);
+    }
+
+    public void printTasksWithIndex(Collection<Task> tasks) {
         if (tasks.isEmpty())
             printLine("No tasks found.");
 
-        tasks.stream().map(Task::toString).forEach(this::printLine);
+        int index = 1;
+        for (Task task : tasks) {
+            printLine(index + ". " + task);
+            index++;
+        }
     }
 }

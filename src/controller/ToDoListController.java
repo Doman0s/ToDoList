@@ -1,18 +1,42 @@
-import exception.DeadlineDateMustBeFuture;
-import exception.InvalidOptionException;
+package controller;
+
+import data.Status;
+import data.Task;
+import data.TaskDatabase;
+import exception.*;
+import io.ConsolePrinter;
+import io.DataReader;
+import io.file.CsvFileManager;
+import io.file.FileManager;
+import io.file.FileManagerFactory;
+import io.file.FileManagerType;
 
 import java.time.LocalDate;
 import java.util.*;
-import java.util.stream.Collectors;
 
-class ToDoListController {
+public class ToDoListController {
     private static final int QUICK_MENU_SIZE = 4;
 
-    ConsolePrinter printer = new ConsolePrinter();
-    DataReader reader = new DataReader();
-    TaskDatabase database = new TaskDatabase();
+    private final ConsolePrinter printer = new ConsolePrinter();
+    private final DataReader reader = new DataReader(printer);
 
-    void mainLoop() {
+    private FileManager fileManager = new CsvFileManager();
+    private TaskDatabase database;
+
+    public ToDoListController() {
+        try {
+            FileManagerType type = reader.readFileManagerType();
+            fileManager = FileManagerFactory.getFileManager(type);
+            database = fileManager.readFromFile();
+            printer.printLine("Data from file loaded successfully.");
+        } catch (FileReadException | InvalidFileManagerTypeException e) {
+            printer.printLine(e.getMessage());
+            printer.printLine("Initializes new database.");
+            database = new TaskDatabase();
+        }
+    }
+
+    public void mainLoop() {
         Option option;
 
         do {
@@ -23,6 +47,7 @@ class ToDoListController {
     }
 
     private void printMenu() {
+        printer.printLine("");
         printer.printLine("------QUICK-MENU------");
         printQuickMenuOptions();
         printer.printLine("---------MENU---------");
@@ -68,7 +93,7 @@ class ToDoListController {
             case END_CUSTOM_TASK -> endCustomTask();
             case EDIT_TASK -> editTask();
             case DELETE_TASK -> deleteTask();
-            case FIND_TASK -> findTask();
+            case FIND_TASK -> findTaskByName();
             case FILTER_TASKS -> filterTasks();
             case SHOW_STATISTICS -> showStatistics();
             case CLEAR_STATISTICS -> clearStatistics();
@@ -79,12 +104,17 @@ class ToDoListController {
 
     private void exit() {
         reader.close();
+        try {
+            fileManager.saveToFile(database);
+        } catch (FileWriteException e) {
+            printer.printLine(e.getMessage());
+        }
         printer.printLine("Leaving the application, until next time!");
     }
 
     private void printTodaysTasks() {
-        LocalDate CurrentDate = LocalDate.now();
-        List<Task> tasks = database.getTasks().get(CurrentDate);
+        LocalDate currentDate = LocalDate.now();
+        List<Task> tasks = database.findTasksByDate(currentDate);
         printer.printTasks(tasks);
     }
 
@@ -92,7 +122,7 @@ class ToDoListController {
         try {
             Task task = reader.readAndCreateTask();
             database.addTask(task);
-            printer.printLine("Task added successfully.");
+            printer.printLine("exception.Task added successfully.");
         } catch (NullPointerException | DeadlineDateMustBeFuture e) {
             printer.printLine(e.getMessage());
         }
@@ -100,10 +130,12 @@ class ToDoListController {
 
     private void endTodaysTask() {
         LocalDate currentDate = LocalDate.now();
-        List<Task> tasks = database.getTasks().get(currentDate);
-        if (!tasks.isEmpty()) {
+        List<Task> tasks = database.findTasksByDate(currentDate);
+        if (tasks != null && !tasks.isEmpty()) {
             Task task = tasks.removeFirst();
+            task.setStatus(Status.DONE);
             database.addToHistory(task);
+            TaskDatabase.tasksCompleted++;
             printer.printLine("The task " + tasks.getFirst().getName() + " has been completed.");
         } else {
             printer.printLine("Today's task list is empty.");
@@ -111,8 +143,9 @@ class ToDoListController {
     }
 
     private void printFutureTasks() {
+        // get all tasks with dates after today's date
         database.getTasks().entrySet().stream()
-                .filter(entry -> !entry.getKey().equals(LocalDate.now()))
+                .filter(entry -> entry.getKey().isAfter(LocalDate.now()))
                 .map(Map.Entry::getValue)
                 .flatMap(Collection::stream)
                 .map(Task::toString)
@@ -120,16 +153,10 @@ class ToDoListController {
     }
 
     private void endCustomTask() {
-        printer.printLine("Enter the date from which you want to complete the task.");
         LocalDate date = reader.readDate();
-        List<Task> tasks = database.getTasks().get(date);
+        printTasksFromDateWithIndex(date);
 
-        for (int i = 0; i < tasks.size(); i++) {
-            printer.printLine(i + ". " + tasks.get(i));
-        }
-
-        printer.printLine("Enter the task number.");
-        int id = reader.getInt() - 1;
+        int id = getTaskNumber();
 
         try {
             Task task = database.getTasks().get(date).get(id);
@@ -141,20 +168,13 @@ class ToDoListController {
     }
 
     private void editTask() {
-        printer.printLine("Enter the date from which you want to edit the task.");
         LocalDate date = reader.readDate();
-        List<Task> tasks = database.getTasks().get(date);
+        printTasksFromDateWithIndex(date);
 
-        for (int i = 0; i < tasks.size(); i++) {
-            printer.printLine(i + ". " + tasks.get(i));
-        }
-
-        printer.printLine("Enter the task number.");
-        int id = reader.getInt() - 1;
-        Task task;
+        int id = getTaskNumber();
 
         try {
-            task = database.getTasks().get(date).get(id);
+            Task task = database.getTasks().get(date).get(id);
             printer.printLine("Old task data");
             printer.printLine(task.toString());
             printer.printLine("Enter new task data");
@@ -169,16 +189,10 @@ class ToDoListController {
     }
 
     private void deleteTask() {
-        printer.printLine("Enter the date from which you want to delete the task.");
         LocalDate date = reader.readDate();
-        List<Task> tasks = database.getTasks().get(date);
+        printTasksFromDateWithIndex(date);
 
-        for (int i = 0; i < tasks.size(); i++) {
-            printer.printLine(i + ". " + tasks.get(i));
-        }
-
-        printer.printLine("Enter the task number.");
-        int id = reader.getInt() - 1;
+        int id = getTaskNumber();
 
         try {
             Task task = database.getTasks().get(date).get(id);
@@ -188,42 +202,49 @@ class ToDoListController {
         }
     }
 
-    private void findTask() {
+    private void printTasksFromDateWithIndex(LocalDate date) {
+        printer.printLine("Enter the date for the task operation.");
+        List<Task> tasksByDate = database.findTasksByDate(date);
+        printer.printTasksWithIndex(tasksByDate);
+    }
+
+    private int getTaskNumber() {
+        printer.printLine("Enter the task number.");
+        return reader.getInt() - 1;
+    }
+
+    private void findTaskByName() {
         printer.printLine("Enter task name");
         String taskName = reader.readLine();
-        Collection<Task> foundTasks = database.findTaskByName(taskName);
-        printer.printTasks(foundTasks);
+        printer.printTasks(database.findTaskByName(taskName));
     }
 
     private void filterTasks() {
         printer.printLine("Enter the date of tasks to be displayed.");
         LocalDate filterDate = reader.readDate();
-        Collection<Task> foundTasks = database.findTasksByDate(filterDate);
-        printer.printTasks(foundTasks);
+        printer.printTasks(database.findTasksByDate(filterDate));
     }
 
     private void showStatistics() {
-        printer.printLine("Statistics");
-        printer.printLine("Number of all created tasks: " + TaskDatabase.tasksCreated);
-        printer.printLine("Number of completed tasks: " + TaskDatabase.tasksCompleted);
-        printer.printLine("Number of failed tasks: " + TaskDatabase.tasksFailed);
+        String statistics = "Statistics" +
+                "Number of all created tasks: " + TaskDatabase.tasksCreated +
+                "Number of completed tasks: " + TaskDatabase.tasksCompleted +
+                "Number of failed tasks: " + TaskDatabase.tasksFailed;
+        printer.printLine(statistics);
     }
 
     private void clearStatistics() {
-        TaskDatabase.tasksCreated = 0;
-        TaskDatabase.tasksCompleted = 0;
-        TaskDatabase.tasksFailed = 0;
-        printer.printLine("Statistics deleted successfully.");
+        database.clearStatistics();
+        printer.printLine("Statistics cleared successfully.");
     }
 
     private void showHistory() {
         printer.printLine("History");
-        List<Task> tasksHistory = database.getTasksHistory();
-        printer.printTasks(tasksHistory);
+        printer.printTasks(database.getTasksHistory());
     }
 
     private void clearHistory() {
-        database.getTasksHistory().clear();
+        database.clearHistory();
         printer.printLine("History deleted successfully.");
     }
 

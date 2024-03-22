@@ -1,6 +1,8 @@
+package data;
+
 import exception.InvalidPriorityException;
 
-enum Status {
+public enum Status {
     TO_DO(1),
     DONE(2),
     FAILED(3);
