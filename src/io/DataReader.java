@@ -12,7 +12,7 @@ import java.util.InputMismatchException;
 import java.util.Scanner;
 
 public class DataReader {
-    private final static DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("dd-MM-yyyy");
 
     private final Scanner scanner = new Scanner(System.in);
     private final ConsolePrinter printer;
@@ -25,15 +25,69 @@ public class DataReader {
         printer.printLine("Create a new task");
         printer.printLine("Name");
         String name = scanner.nextLine();
+
         printer.printLine("Description");
         String description = scanner.nextLine();
-        printer.printLine("Deadline - format (YYYY-MM-DD)");
+
+        printer.printLine("Deadline - format (DD-MM-YYYY)");
         LocalDate deadline = readDate();
+
         printer.printLine("Priority");
         printAllPriorities();
         Priority priority = readPriority();
 
         return new Task(name, description, deadline, priority);
+    }
+
+    public boolean readAndEditTask(Task task) {
+        boolean editedCorrectly = true;
+
+        printer.printLine("Old task data");
+        printer.printLine(task.getFullInfo());
+
+        printer.printLine("\nEnter new data (leave empty to keep old value):");
+        printer.printLine("Name");
+        String name = scanner.nextLine();
+        printer.printLine("Description");
+        String description = scanner.nextLine();
+        printer.printLine("Deadline - format (YYYY-MM-DD)");
+        String deadlineString = scanner.nextLine();
+        printer.printLine("Priority");
+        printAllPriorities();
+        String priorityValue = scanner.nextLine();
+
+        if (!deadlineString.isEmpty()) {
+            LocalDate deadline;
+            try {
+                deadline = LocalDate.parse(deadlineString);
+                task.setDeadline(deadline);
+            } catch (DateTimeParseException e) {
+                printer.printLine("Incorrect date, required format (YYYY-MM-DD).");
+                return !editedCorrectly;
+            }
+        }
+
+        if (!priorityValue.isEmpty()) {
+            try {
+                int value = Integer.parseInt(priorityValue);
+                Priority priority = Priority.createFromInt(value);
+                task.setPriority(priority);
+            } catch (NumberFormatException e) {
+                printer.printLine("Incorrect priority value.");
+                return !editedCorrectly;
+            } catch (InvalidPriorityException e) {
+                printer.printLine(e.getMessage());
+                return !editedCorrectly;
+            }
+        }
+
+        if (!name.isEmpty())
+            task.setName(name);
+
+        if (!description.isEmpty())
+            task.setDescription(description);
+
+        return editedCorrectly;
     }
 
     private Priority readPriority() {
@@ -66,12 +120,12 @@ public class DataReader {
             try {
                 date = LocalDate.parse(scanner.nextLine(), FORMATTER);
                 if (date.isBefore(LocalDate.now())) {
-                    printer.printLine("Deadline date must be in the future.");
+                    printer.printLine("Deadline date must be in the future, try again.");
                 } else {
                     dateOk = true;
                 }
             } catch (DateTimeParseException e) {
-                printer.printLine("Incorrect date, required format (YYYY-MM-DD), try again.");
+                printer.printLine("Incorrect date, required format (DD-MM-YYYY), try again.");
             }
         } while (!dateOk);
 

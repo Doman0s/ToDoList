@@ -1,8 +1,8 @@
 package io.file;
 
-import data.TaskDatabase;
+import data.Database;
 
 public interface FileManager {
-    TaskDatabase readFromFile();
-    void saveToFile(TaskDatabase database);
+    Database readFromFile();
+    void saveToFile(Database database);
 }

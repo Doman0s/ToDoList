@@ -1,6 +1,5 @@
 package data;
 
-import exception.DeadlineDateMustBeFuture;
 import exception.TaskNameCantBeEmptyOrNull;
 
 import java.io.Serializable;
@@ -19,7 +18,7 @@ public class Task implements Comparable<Task>, Serializable {
         setName(name);
         this.description = description;
         this.creationDate = creationDate;
-        setDeadline(deadline);
+        this.deadline = deadline;
         this.status = status;
         this.priority = priority;
     }
@@ -55,8 +54,6 @@ public class Task implements Comparable<Task>, Serializable {
     }
 
     public void setDeadline(LocalDate deadline) {
-        if (deadline.isBefore(LocalDate.now()))
-            throw new DeadlineDateMustBeFuture("Deadline date must be in the future.");
         this.deadline = deadline;
     }
 
@@ -85,6 +82,13 @@ public class Task implements Comparable<Task>, Serializable {
                 priority.name() + ";";
     }
 
+    public String getFullInfo() {
+        return "Name: " + name + "\n" +
+                "Description: " + description + "\n" +
+                "Deadline: " + deadline + "\n" +
+                "Priority: " + priority.name();
+    }
+
     @Override
     public int compareTo(Task task) {
         return -priority.compareTo(task.getPriority());
@@ -92,10 +96,9 @@ public class Task implements Comparable<Task>, Serializable {
 
     @Override
     public String toString() {
-        return "Name: " + name + " | " +
-                "Description: " + description + " | " +
+        return name + " | " +
+                "Description: " + description.substring(0, Math.min(description.length(), 20)) + "... | " +
                 "Deadline: " + deadline + " | " +
-                "Status: " + status.name() + " | " +
                 "Priority: " + priority.name();
     }
 }

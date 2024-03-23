@@ -3,7 +3,7 @@ package io.file;
 import data.Priority;
 import data.Status;
 import data.Task;
-import data.TaskDatabase;
+import data.Database;
 import exception.FileReadException;
 import exception.FileWriteException;
 
@@ -16,10 +16,11 @@ import java.util.List;
 public class CsvFileManager implements FileManager {
     public static final String FILE_NAME = "src/db/database.csv";
     private static final String HISTORY_SEPARATOR = "HISTORY";
+    private static final String STATISTICS_SEPARATOR = "STATISTICS";
 
     @Override
-    public TaskDatabase readFromFile() {
-        TaskDatabase database = new TaskDatabase();
+    public Database readFromFile() {
+        Database database = new Database();
 
         try (
                 FileReader fileReader = new FileReader(FILE_NAME);
@@ -27,6 +28,7 @@ public class CsvFileManager implements FileManager {
         ){
             readTasksFromFile(reader, database);
             readHistoryFromFile(reader, database);
+            readStatisticsFromFile(reader);
         } catch (FileNotFoundException e) {
             throw new FileReadException("File " + FILE_NAME + " not found.");
         } catch (IOException e) {
@@ -38,16 +40,16 @@ public class CsvFileManager implements FileManager {
         return database;
     }
 
-    private void readTasksFromFile(BufferedReader reader, TaskDatabase database) throws IOException {
+    private void readTasksFromFile(BufferedReader reader, Database database) throws IOException {
         reader.lines()
                 .takeWhile(line -> !line.equals(HISTORY_SEPARATOR)) // read until HISTORY_SEPARATOR
                 .map(this::createTaskFromString)
                 .forEach(database::addTask);
     }
 
-    private void readHistoryFromFile(BufferedReader reader, TaskDatabase database) throws IOException {
+    private void readHistoryFromFile(BufferedReader reader, Database database) throws IOException {
         reader.lines()
-                .skip(1) // ignoring HISTORY_SEPARATOR
+                .takeWhile(line -> !line.equals(STATISTICS_SEPARATOR))
                 .map(this::createTaskFromString)
                 .forEach(database::addToHistory);
     }
@@ -65,15 +67,26 @@ public class CsvFileManager implements FileManager {
         return new Task(name, description, creationDate, deadline, status, priority);
     }
 
+    private void readStatisticsFromFile(BufferedReader reader) throws IOException {
+        String[] splitLine = reader.readLine().split(";");
+        Database.tasksCreated = Integer.parseInt(splitLine[0]);
+        Database.tasksCompleted = Integer.parseInt(splitLine[1]);
+        Database.tasksFailed = Integer.parseInt(splitLine[2]);
+    }
+
     @Override
-    public void saveToFile(TaskDatabase database) {
+    public void saveToFile(Database database) {
         try (
             FileWriter fileWriter = new FileWriter(FILE_NAME);
             BufferedWriter writer = new BufferedWriter(fileWriter)
         ){
             writeTasksToFile(writer, getAllTasksFromDatabase(database));
             writer.write(HISTORY_SEPARATOR);
+            writer.newLine();
             writeTasksToFile(writer, database.getTasksHistory());
+            writer.write(STATISTICS_SEPARATOR);
+            writer.newLine();
+            writeStatisticsToFile(writer, database.getTasksHistory());
         } catch (IOException e) {
             throw new FileWriteException("Error while writing data to " + FILE_NAME);
         }
@@ -86,10 +99,17 @@ public class CsvFileManager implements FileManager {
         writer.write(builder.toString());
     }
 
-    private List<Task> getAllTasksFromDatabase(TaskDatabase database) {
+    private List<Task> getAllTasksFromDatabase(Database database) {
         return database.getTasks().values()
                 .stream()
                 .flatMap(Collection::stream)
                 .toList();
+    }
+
+    private void writeStatisticsToFile(BufferedWriter writer, List<Task> tasksHistory) throws IOException {
+        String statistics = Database.tasksCreated + ";" +
+                Database.tasksCompleted + ";" +
+                Database.tasksFailed;
+        writer.write(statistics);
     }
 }

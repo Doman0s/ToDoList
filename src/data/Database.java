@@ -5,10 +5,11 @@ import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class TaskDatabase implements Serializable {
+public class Database implements Serializable {
     public static int tasksCreated;
     public static int tasksCompleted;
     public static int tasksFailed;
+
     // tasks grouped by date and sorted by priority
     private final Map<LocalDate, List<Task>> tasks = new TreeMap<>();
     private final List<Task> tasksHistory = new ArrayList<>();
@@ -22,7 +23,6 @@ public class TaskDatabase implements Serializable {
     }
 
     public void addTask(Task task) {
-        Objects.requireNonNull(task, "data.Task cannot be null.");
         LocalDate key = task.getDeadline();
 
         if (!tasks.containsKey(key))
@@ -30,30 +30,19 @@ public class TaskDatabase implements Serializable {
 
         tasks.get(key).add(task);
         sortTasksByPriority(key);
-        tasksCreated++;
-    }
-
-    public List<Task> findTasksByDate(LocalDate key) {
-        return tasks.get(key);
+        Database.tasksCreated++;
     }
 
     private void sortTasksByPriority(LocalDate key) {
         Collections.sort(tasks.get(key));
     }
 
-    public void addToHistory(Task task) {
-        tasksHistory.add(task);
-    }
-
     public void removeTask(LocalDate key, Task task) {
         tasks.get(key).remove(task);
     }
 
-    public Collection<Task> findTaskByName(String taskName) {
-        return tasks.values().stream()
-                .flatMap(Collection::stream)
-                .filter(task -> task.getName().contains(taskName))
-                .collect(Collectors.toList());
+    public void addToHistory(Task task) {
+        tasksHistory.add(task);
     }
 
     public void clearHistory() {
@@ -61,8 +50,8 @@ public class TaskDatabase implements Serializable {
     }
 
     public void clearStatistics() {
-        tasksCreated = 0;
-        tasksCompleted = 0;
-        tasksFailed = 0;
+        Database.tasksCreated = 0;
+        Database.tasksCompleted = 0;
+        Database.tasksFailed = 0;
     }
 }
