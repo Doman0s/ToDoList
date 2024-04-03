@@ -47,6 +47,7 @@ public class ConsolePrinter {
         Set<Map.Entry<LocalDate, List<Task>>> entries = tasks.entrySet();
 
         for (Map.Entry<LocalDate, List<Task>> entry : entries) {
+            printLine("");
             printLine(HORIZONTAL_SEPARATOR + "Tasks of " + entry.getKey());
             printTasksWithIndex(entry.getValue());
         }

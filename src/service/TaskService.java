@@ -54,9 +54,10 @@ public class TaskService {
 
     public Collection<Task> findTaskByName(String taskName) {
         Collection<List<Task>> tasks = database.getTasks().values();
+
         return tasks.stream()
                 .flatMap(Collection::stream)
-                .filter(task -> task.getName().contains(taskName))
+                .filter(task -> task.getName().toLowerCase().contains(taskName.toLowerCase()))
                 .collect(Collectors.toList());
     }
 

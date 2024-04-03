@@ -133,10 +133,6 @@ public class DataReader {
     }
 
     public FileManagerType readFileManagerType() {
-        printer.printLine("Specify in what form you want to read and write data.");
-        for (FileManagerType value : FileManagerType.values()) {
-            printer.printLine(value.toString());
-        }
         return FileManagerType.createFromInt(getInt());
     }
 

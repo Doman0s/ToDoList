@@ -5,10 +5,8 @@ import data.Database;
 import exception.*;
 import io.ConsolePrinter;
 import io.DataReader;
-import io.file.CsvFileManager;
 import io.file.FileManager;
 import io.file.FileManagerFactory;
-import io.file.FileManagerType;
 import service.TaskService;
 
 import java.time.LocalDate;
@@ -18,27 +16,33 @@ public class TaskController {
     private final ConsolePrinter printer = new ConsolePrinter();
     private final DataReader reader = new DataReader(printer);
 
-    private FileManager fileManager;
     private TaskService taskService;
+    private FileManager fileManager;
 
     public TaskController() {
-        Database database;
-
         try {
-            FileManagerType type = reader.readFileManagerType();
-            fileManager = FileManagerFactory.getFileManager(type);
-            database = fileManager.readFromFile();
-            taskService = new TaskService(database);
+            fileManager = new FileManagerFactory(reader, printer).getFileManager();
+            taskService = new TaskService(fileManager.readFromFile());
 //            checkDatabaseForFailedTasks();
             printer.printLine("Data from file loaded successfully.");
-        } catch (FileReadException | InvalidFileManagerTypeException e) {
+        } catch (FileReadException | IllegalArgumentException e) {
             printer.printLine(e.getMessage());
             printer.printLine("Initializes new database.");
-            fileManager = new CsvFileManager();
-            database = new Database();
+            taskService = new TaskService(new Database());
         }
-        taskService = new TaskService(database);
     }
+
+    //TODO
+    //1.change the listing style, instead sout use souf with custom length for all variables
+    //2.serializable format doesn't work
+    //3.is loop for reading a date from user when ending custom task really necessary?
+    //4.checking if list with tasks is null or empty should be in service (only once), repeating this
+    //operation in controller is bad
+    //5.when file doesn't have enough ; symbols, app is throwing NullPointerException
+    //6.problems with reading empty statistics
+    //7.code is repeating in methods 7, 8, 9
+
+    //TESTING: options 0, 1, 2, 3, 4, 5, 6, 8, 9, 10, 13, 14 are working just fine (including exception handling)
 
 //    private void checkDatabaseForFailedTasks() {
 //        taskService.getTasks().entrySet().stream()
@@ -97,13 +101,13 @@ public class TaskController {
     }
 
     private void exit() {
-        reader.close();
         try {
             fileManager.saveToFile(taskService.getDatabase());
             printer.printLine("Data to file exported successfully.");
         } catch (FileWriteException e) {
             printer.printLine(e.getMessage());
         }
+        reader.close();
         printer.printLine("Leaving the application, until next time!");
     }
 
@@ -151,17 +155,26 @@ public class TaskController {
         }
     }
 
-    //TOTO test these 3 methods below for exceptions
+    //TODO test these 3 methods below for exceptions
     private void endCustomTask() {
-        LocalDate date = getDateAndPrintTasksForThisDate();
-        int index = getTaskIndex();
+        printer.printLine("Enter the date for the task operation, format (DD-MM-YYYY).");
+        printer.promptCharacter();
+        LocalDate date = reader.readDate();
+        List<Task> tasks = taskService.findTasksByDate(date);
 
-        try {
-            Task task = taskService.getTaskByDateAndIndex(date, index);
-            taskService.endTask(task);
-            printer.printLine("Task completed successfully.");
-        } catch (ArrayIndexOutOfBoundsException e) {
-            printer.printLine("Incorrect task id.");
+        if (tasks != null && !tasks.isEmpty()) {
+            printer.printTasksWithIndex(tasks);
+            int index = getTaskIndex();
+
+            try {
+                Task task = taskService.getTaskByDateAndIndex(date, index);
+                taskService.endTask(task);
+                printer.printLine("Task \"" + task.getName() + "\" completed successfully.");
+            } catch (IndexOutOfBoundsException e) {
+                printer.printLine("Incorrect task number.");
+            }
+        } else {
+            printer.printLine("No tasks found for date " + date + ".");
         }
     }
 
@@ -173,29 +186,38 @@ public class TaskController {
             Task task = taskService.getTaskByDateAndIndex(date, index);
             boolean editedSuccessfully = reader.readAndEditTask(task);
             if (editedSuccessfully)
-                printer.printLine("Task edited successfully.");
+                printer.printLine("Task  \"" + task.getName() + "\" edited successfully.");
         } catch (ArrayIndexOutOfBoundsException e) {
-            printer.printLine("Incorrect task id.");
+            printer.printLine("Incorrect task number.");
         } catch (NullPointerException | DeadlineDateMustBeFuture e) {
             printer.printLine(e.getMessage());
         }
     }
 
     private void deleteTask() {
-        LocalDate date = getDateAndPrintTasksForThisDate();
-        int index = getTaskIndex();
+        printer.printLine("Enter the date for the task operation, format (DD-MM-YYYY).");
+        printer.promptCharacter();
+        LocalDate date = reader.readDate();
+        List<Task> tasks = taskService.findTasksByDate(date);
 
-        try {
-            Task task = taskService.getTaskByDateAndIndex(date, index);
-            taskService.removeTask(task);
-            printer.printLine("Task deleted successfully.");
-        } catch (ArrayIndexOutOfBoundsException e) {
-            printer.printLine("Incorrect task id.");
+        if (tasks != null && !tasks.isEmpty()) {
+            printer.printTasksWithIndex(tasks);
+            int index = getTaskIndex();
+
+            try {
+                Task task = taskService.getTaskByDateAndIndex(date, index);
+                taskService.removeTask(task);
+                printer.printLine("Task \"" + task.getName() + "\" deleted successfully.");
+            } catch (IndexOutOfBoundsException e) {
+                printer.printLine("Incorrect task number.");
+            }
+        } else {
+            printer.printLine("No tasks found for date " + date + ".");
         }
     }
 
     private LocalDate getDateAndPrintTasksForThisDate() {
-        printer.printLine("Enter the date for the task operation.");
+        printer.printLine("Enter the date for the task operation, format (DD-MM-YYYY).");
         printer.promptCharacter();
         LocalDate date = reader.readDate();
         printTasksForDate(date);
@@ -224,7 +246,7 @@ public class TaskController {
     }
 
     private void filterTasks() {
-        printer.printLine("Enter the date of tasks to be displayed.");
+        printer.printLine("Enter the date of tasks to be displayed, format (DD-MM-YYYY).");
         printer.promptCharacter();
         LocalDate filterDate = reader.readDate();
         Collection<Task> taskByName = taskService.findTasksByDate(filterDate);
@@ -232,7 +254,7 @@ public class TaskController {
         if (taskByName == null || taskByName.isEmpty()) {
             printer.printLine("No tasks found.");
         } else {
-            printer.printTasks(taskByName);
+            printer.printTasksWithIndex(taskByName);
         }
     }
 
@@ -246,8 +268,14 @@ public class TaskController {
     }
 
     private void showHistory() {
-        printer.printLine("History");
-        printer.printTasks(taskService.getHistory());
+        List<Task> history = taskService.getHistory();
+
+        if (history == null || history.isEmpty()) {
+            printer.printLine("History is empty.");
+        } else {
+            printer.printLine("History");
+            printer.printTasks(taskService.getHistory());
+        }
     }
 
     private void clearHistory() {

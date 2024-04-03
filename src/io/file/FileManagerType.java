@@ -27,7 +27,7 @@ public enum FileManagerType {
             return FileManagerType.values()[value - 1];
         } catch (ArrayIndexOutOfBoundsException e) {
             throw new InvalidFileManagerTypeException(
-                    "Invalid File manager number: " + value + ", can't read data from file.");
+                    "Invalid File manager number: " + value + ", can't read data from file, try again.");
         }
     }
 
