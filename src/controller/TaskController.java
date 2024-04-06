@@ -23,7 +23,7 @@ public class TaskController {
         try {
             fileManager = new FileManagerFactory(reader, printer).getFileManager();
             taskService = new TaskService(fileManager.readFromFile());
-//            checkDatabaseForFailedTasks();
+            checkDatabaseForFailedTasksAndFailThem();
             printer.printLine("Data from file loaded successfully.");
         } catch (FileReadException | IllegalArgumentException e) {
             printer.printLine(e.getMessage());
@@ -34,24 +34,17 @@ public class TaskController {
 
     //TODO
     //1.change the listing style, instead sout use souf with custom length for all variables
-    //2.serializable format doesn't work
-    //3.is loop for reading a date from user when ending custom task really necessary?
-    //4.checking if list with tasks is null or empty should be in service (only once), repeating this
+    //2.is loop for reading a date from user when ending custom task really necessary?
+    //3.checking if list with tasks is null or empty should be in service (only once), repeating this
     //operation in controller is bad
-    //5.when file doesn't have enough ; symbols, app is throwing NullPointerException
-    //6.problems with reading empty statistics
-    //7.code is repeating in methods 7, 8, 9
+    //4.problems with reading empty statistics or date data
+    //5.code is repeating in methods 7, 8, 9
+    //6.NullPointers when trying to remove null instead of Task object
+    //7.when error occur while reading statistics, history and tasks should still be loaded...
+    //8.ArrayList to store sorted tasks (sorting them all the time) is a bad idea...
+    //9.still problems with reading serializable object
 
     //TESTING: options 0, 1, 2, 3, 4, 5, 6, 8, 9, 10, 13, 14 are working just fine (including exception handling)
-
-//    private void checkDatabaseForFailedTasks() {
-//        taskService.getTasks().entrySet().stream()
-//                // Find unfinished tasks whose deadline has passed and fail them
-//                .filter(entry -> entry.getKey().isBefore(LocalDate.now()))
-//                .map(Map.Entry::getValue)
-//                .flatMap(Collection::stream)
-//                .forEach(taskService::failTask);
-//    }
 
     public void mainLoop() {
         Option option;
@@ -61,6 +54,19 @@ public class TaskController {
             option = readOption();
             processOption(option);
         } while (option != Option.EXIT);
+    }
+
+    private void checkDatabaseForFailedTasksAndFailThem() {
+        List<Task> tasksToFail = taskService.getTasks().entrySet().stream()
+                // Find unfinished tasks whose deadline has passed and fail them
+                .filter(entry -> entry.getKey().isBefore(LocalDate.now()))
+                .map(Map.Entry::getValue)
+                .flatMap(Collection::stream)
+                .toList();
+
+        for (Task task : tasksToFail) {
+            taskService.failTask(task);
+        }
     }
 
     private Option readOption() {

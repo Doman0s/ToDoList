@@ -28,13 +28,15 @@ public class CsvFileManager implements FileManager {
         ){
             readTasksFromFile(reader, database);
             readHistoryFromFile(reader, database);
-            readStatisticsFromFile(reader);
+            readStatisticsFromFile(reader, database);
         } catch (FileNotFoundException e) {
             throw new FileReadException("File " + FILE_NAME + " not found.");
         } catch (IOException e) {
             throw new FileReadException("Error while reading data from " + FILE_NAME);
         } catch (DateTimeParseException | IllegalArgumentException e) {
             throw new FileReadException("Incorrect data in " + FILE_NAME);
+        } catch (ArrayIndexOutOfBoundsException e) {
+            throw new FileReadException("Corrupted data in " + FILE_NAME);
         }
 
         return database;
@@ -67,11 +69,11 @@ public class CsvFileManager implements FileManager {
         return new Task(name, description, creationDate, deadline, status, priority);
     }
 
-    private void readStatisticsFromFile(BufferedReader reader) throws IOException {
+    private void readStatisticsFromFile(BufferedReader reader, Database database) throws IOException {
         String[] splitLine = reader.readLine().split(";");
-        Database.tasksCreated = Integer.parseInt(splitLine[0]);
-        Database.tasksCompleted = Integer.parseInt(splitLine[1]);
-        Database.tasksFailed = Integer.parseInt(splitLine[2]);
+        database.setTasksCreated(Integer.parseInt(splitLine[0]));
+        database.setTasksCompleted(Integer.parseInt(splitLine[1]));
+        database.setTasksFailed(Integer.parseInt(splitLine[2]));
     }
 
     @Override
@@ -86,7 +88,7 @@ public class CsvFileManager implements FileManager {
             writeTasksToFile(writer, database.getTasksHistory());
             writer.write(STATISTICS_SEPARATOR);
             writer.newLine();
-            writeStatisticsToFile(writer, database.getTasksHistory());
+            writeStatisticsToFile(writer, database);
         } catch (IOException e) {
             throw new FileWriteException("Error while writing data to " + FILE_NAME);
         }
@@ -106,10 +108,10 @@ public class CsvFileManager implements FileManager {
                 .toList();
     }
 
-    private void writeStatisticsToFile(BufferedWriter writer, List<Task> tasksHistory) throws IOException {
-        String statistics = Database.tasksCreated + ";" +
-                Database.tasksCompleted + ";" +
-                Database.tasksFailed;
+    private void writeStatisticsToFile(BufferedWriter writer, Database database) throws IOException {
+        String statistics = database.getTasksCreated() + ";" +
+                database.getTasksCompleted() + ";" +
+                database.getTasksFailed();
         writer.write(statistics);
     }
 }

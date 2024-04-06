@@ -11,12 +11,12 @@ import java.util.stream.Collectors;
 public class TaskService {
     private final Database database;
 
-    public Database getDatabase() {
-        return database;
-    }
-
     public TaskService(Database database) {
         this.database = database;
+    }
+
+    public Database getDatabase() {
+        return database;
     }
 
     public Map<LocalDate, List<Task>> getTasks() {
@@ -28,7 +28,12 @@ public class TaskService {
     }
 
     public void removeTask(Task task) {
-        database.removeTask(task.getDeadline(), task);
+        LocalDate key = task.getDeadline();
+        database.removeTask(key, task);
+
+        List<Task> tasks = findTasksByDate(key);
+        if (tasks != null && tasks.isEmpty())
+            database.removeTasksFromDate(key);
     }
 
     public List<Task> findTasksByDate(LocalDate key) {
@@ -36,16 +41,19 @@ public class TaskService {
     }
 
     public void endTask(Task task) {
-        database.removeTask(task.getDeadline(), task);
+        removeTask(task);
+
+        task.setStatus(Status.DONE);
         database.addToHistory(task);
-        Database.tasksCompleted++;
+        database.setTasksCompleted(database.getTasksCompleted() + 1);
     }
 
     public void failTask(Task task) {
+        removeTask(task);
+
         task.setStatus(Status.FAILED);
-        database.removeTask(task.getDeadline(), task);
         database.addToHistory(task);
-        Database.tasksFailed++;
+        database.setTasksFailed(database.getTasksFailed() + 1);
     }
 
     public Task getTaskByDateAndIndex(LocalDate date, int index) {
@@ -68,16 +76,16 @@ public class TaskService {
             task = tasks.removeFirst();
             task.setStatus(Status.DONE);
             database.addToHistory(task);
-            Database.tasksCompleted++;
+            database.setTasksCompleted(database.getTasksCompleted() + 1);
         }
         return Optional.ofNullable(task);
     }
 
     public String getStatistics() {
         return "Statistics" + "\n" +
-                "Number of all created tasks: " + Database.tasksCreated + "\n" +
-                "Number of completed tasks: " + Database.tasksCompleted + "\n" +
-                "Number of failed tasks: " + Database.tasksFailed + "\n";
+                "Number of all created tasks: " + database.getTasksCreated() + "\n" +
+                "Number of completed tasks: " + database.getTasksCompleted() + "\n" +
+                "Number of failed tasks: " + database.getTasksFailed() + "\n";
     }
 
     public void clearStatistics() {
