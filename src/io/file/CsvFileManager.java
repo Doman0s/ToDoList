@@ -12,6 +12,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class CsvFileManager implements FileManager {
     public static final String FILE_NAME = "src/db/database.csv";
@@ -21,37 +22,40 @@ public class CsvFileManager implements FileManager {
     @Override
     public Database readFromFile() {
         Database database = new Database();
+        AtomicLong lineNumber = new AtomicLong(0);
 
         try (
                 FileReader fileReader = new FileReader(FILE_NAME);
                 BufferedReader reader = new BufferedReader(fileReader)
         ){
-            readTasksFromFile(reader, database);
-            readHistoryFromFile(reader, database);
-            readStatisticsFromFile(reader, database);
+            readTasksFromFile(reader, database, lineNumber);
+            readHistoryFromFile(reader, database, lineNumber);
+            readStatisticsFromFile(reader, database, lineNumber);
         } catch (FileNotFoundException e) {
             throw new FileReadException("File " + FILE_NAME + " not found.");
         } catch (IOException e) {
             throw new FileReadException("Error while reading data from " + FILE_NAME);
-        } catch (DateTimeParseException | IllegalArgumentException e) {
-            throw new FileReadException("Incorrect data in " + FILE_NAME);
-        } catch (ArrayIndexOutOfBoundsException e) {
-            throw new FileReadException("Corrupted data in " + FILE_NAME);
+        } catch (DateTimeParseException | IllegalArgumentException | ArrayIndexOutOfBoundsException e) {
+            throw new FileReadException("Incorrect data in " + FILE_NAME + " in line " + lineNumber.get() + ".");
         }
 
         return database;
     }
 
-    private void readTasksFromFile(BufferedReader reader, Database database) throws IOException {
+    private void readTasksFromFile(BufferedReader reader, Database database, AtomicLong lineNumber) throws IOException {
         reader.lines()
                 .takeWhile(line -> !line.equals(HISTORY_SEPARATOR)) // read until HISTORY_SEPARATOR
+                .peek(line -> lineNumber.incrementAndGet())
                 .map(this::createTaskFromString)
                 .forEach(database::addTask);
     }
 
-    private void readHistoryFromFile(BufferedReader reader, Database database) throws IOException {
+    private void readHistoryFromFile(BufferedReader reader, Database database, AtomicLong lineNumber) throws IOException {
+        lineNumber.incrementAndGet(); // adding HISTORY_SEPARATOR to line counter
+
         reader.lines()
                 .takeWhile(line -> !line.equals(STATISTICS_SEPARATOR))
+                .peek(line -> lineNumber.incrementAndGet())
                 .map(this::createTaskFromString)
                 .forEach(database::addToHistory);
     }
@@ -69,7 +73,10 @@ public class CsvFileManager implements FileManager {
         return new Task(name, description, creationDate, deadline, status, priority);
     }
 
-    private void readStatisticsFromFile(BufferedReader reader, Database database) throws IOException {
+    private void readStatisticsFromFile(BufferedReader reader, Database database, AtomicLong lineNumber) throws IOException {
+        lineNumber.incrementAndGet(); // adding STATISTICS_SEPARATOR to line counter
+        lineNumber.incrementAndGet(); // adding line with statistics to the line counter
+
         String[] splitLine = reader.readLine().split(";");
         database.setTasksCreated(Integer.parseInt(splitLine[0]));
         database.setTasksCompleted(Integer.parseInt(splitLine[1]));

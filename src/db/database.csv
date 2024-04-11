@@ -1,6 +1,23 @@
-Plan weekend trip;Start planning a weekend getaway to the countryside.;2024-04-03;2024-04-06;TO_DO;HIGH;
-Clean out the garage;Declutter and organize the items in the garage.;2024-04-03;2024-04-06;TO_DO;HIGH;
-Buy birthday gift for John;A nice present for John's birthday.;2024-04-03;2024-04-12;TO_DO;MEDIUM;
+Pick up kids from school;Pick up Sarah and Mark from Little Angels School.;2024-04-11;2024-04-11;TO_DO;HIGH;
+Prepare dinner for family;Cook a delicious dinner for the whole family.;2024-04-11;2024-04-11;TO_DO;MEDIUM;
+Go for a jog;Take a morning jog around the park.;2024-04-11;2024-04-11;TO_DO;MEDIUM;
+Water the plants;Remember to water the indoor plants in the living room.;2024-04-11;2024-04-11;TO_DO;LOW;
+Call mom;Give mom a call to catch up.;2024-04-11;2024-04-11;TO_DO;LOW;
+Read a chapter of a book;Spend some time reading a chapter of your favorite book.;2024-04-11;2024-04-11;TO_DO;LOW;
+Write in journal;Take some time to write in your journal and reflect on the day.;2024-04-11;2024-04-11;TO_DO;LOW;
+Go for a walk;Enjoy a relaxing walk in the neighborhood.;2024-04-11;2024-04-11;TO_DO;LOW;
+Call the plumber;Schedule a plumber to fix the leaking faucet in the kitchen.;2024-04-11;2024-04-12;TO_DO;HIGH;
+Do grocery shopping;Buy groceries for the week.;2024-04-11;2024-04-12;TO_DO;MEDIUM;
+Organize paperwork;Sort through and organize the paperwork on your desk.;2024-04-11;2024-04-12;TO_DO;MEDIUM;
+Plan meals for the week;Create a meal plan for the upcoming week.;2024-04-11;2024-04-12;TO_DO;MEDIUM;
+Review monthly budget;Review and update your monthly budget spreadsheet.;2024-04-11;2024-04-12;TO_DO;MEDIUM;
+Call the electrician;Arrange for an electrician to fix the flickering lights in the hallway.;2024-04-11;2024-04-13;TO_DO;HIGH;
+Prepare presentation for meeting;Work on the slides for the upcoming meeting.;2024-04-11;2024-04-13;TO_DO;MEDIUM;
+Send out invitations for party;Send out invitations for the upcoming birthday party.;2024-04-11;2024-04-13;TO_DO;URGENT;
+Schedule dentist appointment;Make an appointment with Dr. Smith for a dental check-up.;2024-04-11;2024-04-13;TO_DO;LOW;
+Plan weekend trip;Start planning a weekend getaway to the countryside.;2024-04-11;2024-04-14;TO_DO;HIGH;
+Clean out the garage;Declutter and organize the items in the garage.;2024-04-11;2024-04-14;TO_DO;HIGH;
+Buy birthday gift for John;A nice present for John's birthday.;2024-04-11;2024-04-22;TO_DO;MEDIUM;
 HISTORY
 Buy birthday present for Alice;Today is Alice's birthday, need to buy her a gift.;2024-03-20;2024-03-22;DONE;MEDIUM;
 Pick up kids from school;Don't forget to pick up the kids from school at 3 PM.;2024-03-20;2024-03-23;DONE;HIGH;
@@ -12,22 +29,5 @@ Fix bug in software application;Identified a critical bug that needs to be fixed
 Review project proposal;Review and provide feedback on the project proposal before the meeting.;2024-03-22;2024-03-22;DONE;MEDIUM;
 Send out invitations for party;Send out invitations to friends for the upcoming party.;2024-03-22;2024-03-23;FAILED;MEDIUM;
 Pay bills;Don't forget to pay the utility bills before the due date.;2024-03-23;2024-03-23;DONE;MEDIUM;
-Pick up kids from school;Pick up Sarah and Mark from Little Angels School.;2024-04-03;2024-04-03;FAILED;HIGH;
-Prepare dinner for family;Cook a delicious dinner for the whole family.;2024-04-03;2024-04-03;FAILED;MEDIUM;
-Go for a jog;Take a morning jog around the park.;2024-04-03;2024-04-03;FAILED;MEDIUM;
-Water the plants;Remember to water the indoor plants in the living room.;2024-04-03;2024-04-03;FAILED;LOW;
-Call mom;Give mom a call to catch up.;2024-04-03;2024-04-03;FAILED;LOW;
-Read a chapter of a book;Spend some time reading a chapter of your favorite book.;2024-04-03;2024-04-03;FAILED;LOW;
-Write in journal;Take some time to write in your journal and reflect on the day.;2024-04-03;2024-04-03;FAILED;LOW;
-Go for a walk;Enjoy a relaxing walk in the neighborhood.;2024-04-03;2024-04-03;FAILED;LOW;
-Call the plumber;Schedule a plumber to fix the leaking faucet in the kitchen.;2024-04-03;2024-04-04;FAILED;HIGH;
-Do grocery shopping;Buy groceries for the week.;2024-04-03;2024-04-04;FAILED;MEDIUM;
-Organize paperwork;Sort through and organize the paperwork on your desk.;2024-04-03;2024-04-04;FAILED;MEDIUM;
-Plan meals for the week;Create a meal plan for the upcoming week.;2024-04-03;2024-04-04;FAILED;MEDIUM;
-Review monthly budget;Review and update your monthly budget spreadsheet.;2024-04-03;2024-04-04;FAILED;MEDIUM;
-Send out invitations for party;Send out invitations for the upcoming birthday party.;2024-04-03;2024-04-05;FAILED;URGENT;
-Call the electrician;Arrange for an electrician to fix the flickering lights in the hallway.;2024-04-03;2024-04-05;FAILED;HIGH;
-Prepare presentation for meeting;Work on the slides for the upcoming meeting.;2024-04-03;2024-04-05;FAILED;MEDIUM;
-Schedule dentist appointment;Make an appointment with Dr. Smith for a dental check-up.;2024-04-03;2024-04-05;FAILED;LOW;
 STATISTICS
-30;7;20
+30;7;3

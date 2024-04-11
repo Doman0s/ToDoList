@@ -69,16 +69,14 @@ public class TaskService {
                 .collect(Collectors.toList());
     }
 
-    public Optional<Task> endAndReturnFirstTask(List<Task> tasks) {
-        Task task = null;
+    public Task endAndReturnFirstTask(List<Task> tasks) {
+        Task task;
+        task = tasks.removeFirst();
+        task.setStatus(Status.DONE);
+        database.addToHistory(task);
+        database.setTasksCompleted(database.getTasksCompleted() + 1);
 
-        if (tasks != null && !tasks.isEmpty()) {
-            task = tasks.removeFirst();
-            task.setStatus(Status.DONE);
-            database.addToHistory(task);
-            database.setTasksCompleted(database.getTasksCompleted() + 1);
-        }
-        return Optional.ofNullable(task);
+        return task;
     }
 
     public String getStatistics() {

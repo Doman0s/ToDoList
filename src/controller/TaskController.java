@@ -33,18 +33,10 @@ public class TaskController {
     }
 
     //TODO
-    //1.change the listing style, instead sout use souf with custom length for all variables
-    //2.is loop for reading a date from user when ending custom task really necessary?
-    //3.checking if list with tasks is null or empty should be in service (only once), repeating this
-    //operation in controller is bad
-    //4.problems with reading empty statistics or date data
-    //5.code is repeating in methods 7, 8, 9
-    //6.NullPointers when trying to remove null instead of Task object
-    //7.when error occur while reading statistics, history and tasks should still be loaded...
-    //8.ArrayList to store sorted tasks (sorting them all the time) is a bad idea...
-    //9.still problems with reading serializable object
-
-    //TESTING: options 0, 1, 2, 3, 4, 5, 6, 8, 9, 10, 13, 14 are working just fine (including exception handling)
+    //1.Change the listing style, instead sout use souf with custom length for all variables
+    //2.Code is repeating in methods 7, 8, 9
+    //3.Task editing doesn't work
+    //4.ArrayList to store sorted tasks (sorting them all the time) is a bad idea...
 
     public void mainLoop() {
         Option option;
@@ -137,18 +129,24 @@ public class TaskController {
     }
 
     private void addTask() {
-        Task task = reader.readAndCreateTask();
-        taskService.addTask(task);
-        printer.printLine("Task added successfully.");
+        try {
+            Task task = reader.readAndCreateTask();
+            taskService.addTask(task);
+            printer.printLine("Task added successfully.");
+        } catch (TaskNameCantBeEmptyOrNull e) {
+            printer.printLine(e.getMessage());
+        }
     }
 
     private void endTodaysTopTask() {
         List<Task> tasks = taskService.findTasksByDate(LocalDate.now());
 
-        taskService.endAndReturnFirstTask(tasks).ifPresentOrElse(
-                task -> printer.printLine("The task \"" + task.getName() + "\" has been completed."),
-                () -> printer.printLine("Today's task list is empty.")
-        );
+        if (tasks == null || tasks.isEmpty()) {
+            printer.printLine("Today's task list is empty.");
+        } else {
+            Task task = taskService.endAndReturnFirstTask(tasks);
+            printer.printLine("The task \"" + task.getName() + "\" has been completed.");
+        }
     }
 
     private void printFutureTasks() {
@@ -185,18 +183,30 @@ public class TaskController {
     }
 
     private void editTask() {
-        LocalDate date = getDateAndPrintTasksForThisDate();
-        int index = getTaskIndex();
+        printer.printLine("Enter the date for the task operation, format (DD-MM-YYYY).");
+        printer.promptCharacter();
+        LocalDate date = reader.readDate();
+        List<Task> tasks = taskService.findTasksByDate(date);
 
-        try {
-            Task task = taskService.getTaskByDateAndIndex(date, index);
-            boolean editedSuccessfully = reader.readAndEditTask(task);
-            if (editedSuccessfully)
-                printer.printLine("Task  \"" + task.getName() + "\" edited successfully.");
-        } catch (ArrayIndexOutOfBoundsException e) {
-            printer.printLine("Incorrect task number.");
-        } catch (NullPointerException | DeadlineDateMustBeFuture e) {
-            printer.printLine(e.getMessage());
+        if (tasks != null && !tasks.isEmpty()) {
+            printer.printTasksWithIndex(tasks);
+            int index = getTaskIndex();
+
+            try {
+                Task task = taskService.getTaskByDateAndIndex(date, index);
+                boolean editedSuccessfully = reader.readAndEditTask(task);
+                if (editedSuccessfully) {
+                    printer.printLine("Task  \"" + task.getName() + "\" edited successfully.");
+                } else {
+                    printer.printLine("Error occurred while editing the task.");
+                }
+            } catch (IndexOutOfBoundsException e) {
+                printer.printLine("Incorrect task number.");
+            } catch (NullPointerException | DeadlineDateMustBeFuture e) {
+                printer.printLine(e.getMessage());
+            }
+        } else {
+            printer.printLine("No tasks found for date " + date + ".");
         }
     }
 

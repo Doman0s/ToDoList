@@ -45,31 +45,26 @@ public class DataReader {
         printer.printLine("Old task data");
         printer.printLine(task.getFullInfo());
 
-        printer.printLine("\nEnter new data (leave empty to keep old value):");
-        printer.printLine("Name");
-        String name = scanner.nextLine();
-        printer.printLine("Description");
-        String description = scanner.nextLine();
-        printer.printLine("Deadline - format (YYYY-MM-DD)");
-        String deadlineString = scanner.nextLine();
-        printer.printLine("Priority");
-        printAllPriorities();
-        String priorityValue = scanner.nextLine();
+        String[] taskData = readDataForTaskEditing();
 
-        if (!deadlineString.isEmpty()) {
+        if (!taskData[2].isEmpty()) {
             LocalDate deadline;
             try {
-                deadline = LocalDate.parse(deadlineString);
-                task.setDeadline(deadline);
+                deadline = LocalDate.parse(taskData[2]);
+                if (deadline.isAfter(LocalDate.now())) {
+                    task.setDeadline(deadline);
+                } else {
+                    printer.printLine("Deadline date must be in the future.");
+                }
             } catch (DateTimeParseException e) {
-                printer.printLine("Incorrect date, required format (YYYY-MM-DD).");
+                printer.printLine("Incorrect date, required format (DD-MM-YYYY).");
                 return !editedCorrectly;
             }
         }
 
-        if (!priorityValue.isEmpty()) {
+        if (!taskData[3].isEmpty()) {
             try {
-                int value = Integer.parseInt(priorityValue);
+                int value = Integer.parseInt(taskData[3]);
                 Priority priority = Priority.createFromInt(value);
                 task.setPriority(priority);
             } catch (NumberFormatException e) {
@@ -81,13 +76,33 @@ public class DataReader {
             }
         }
 
-        if (!name.isEmpty())
-            task.setName(name);
+        if (!taskData[0].isEmpty())
+            task.setName(taskData[0]);
 
-        if (!description.isEmpty())
-            task.setDescription(description);
+        if (!taskData[1].isEmpty())
+            task.setDescription(taskData[1]);
 
         return editedCorrectly;
+    }
+
+    public String[] readDataForTaskEditing() {
+        String[] taskData = new String[4];
+
+        printer.printLine("\nEnter new data (leave empty to keep old value):");
+        printer.printLine("Name");
+        taskData[0] = scanner.nextLine(); // name
+
+        printer.printLine("Description");
+        taskData[1] = scanner.nextLine(); // description
+
+        printer.printLine("Deadline - format (DD-MM-YYYY)");
+        taskData[2] = scanner.nextLine(); // deadline
+
+        printer.printLine("Priority");
+        printAllPriorities();
+        taskData[3] = scanner.nextLine(); //priority
+
+        return taskData;
     }
 
     private Priority readPriority() {

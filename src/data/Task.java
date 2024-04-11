@@ -33,7 +33,7 @@ public class Task implements Comparable<Task>, Serializable {
 
     public void setName(String name) {
         if (name == null || name.isEmpty())
-            throw new TaskNameCantBeEmptyOrNull("data.Task name cannot be empty.");
+            throw new TaskNameCantBeEmptyOrNull("Task name cannot be empty.");
         this.name = name;
     }
 
