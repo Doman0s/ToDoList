@@ -21,7 +21,7 @@ public class ConsolePrinter {
     }
 
     public void promptCharacter() {
-        print(PROMPT_CHARACTER);
+        print(PROMPT_CHARACTER + " ");
     }
 
     public void printMenu() {
@@ -43,6 +43,17 @@ public class ConsolePrinter {
         return builder.toString();
     }
 
+    private void printHeaderRow() {
+        String indexLabel = "No";
+        String nameLabel = "Name";
+        String descriptionLabel = "Description";
+        String deadlineLabel = "Deadline";
+        String priorityLabel = "Priority";
+
+        printLine(String.format("%-3s %-25s %-35s %-12s %-12s",
+                indexLabel, nameLabel, descriptionLabel, deadlineLabel, priorityLabel));
+    }
+
     public void printAllTasks(Map<LocalDate, List<Task>> tasks) {
         Set<Map.Entry<LocalDate, List<Task>>> entries = tasks.entrySet();
 
@@ -54,12 +65,12 @@ public class ConsolePrinter {
     }
 
     public void printTasksWithIndex(Collection<Task> tasks) {
+        printHeaderRow();
+
         int index = 1;
         for (Task task : tasks) {
-            printLine(index++ + ". " + task);
+            String formattedIndex = String.format("%2s", index++);
+            printLine(formattedIndex + ". " + task);
         }
-    }
-    public void printTasks(Collection<Task> tasks) {
-        tasks.stream().map(Task::toString).forEach(this::printLine);
     }
 }

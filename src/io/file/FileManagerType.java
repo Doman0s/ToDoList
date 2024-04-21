@@ -3,8 +3,8 @@ package io.file;
 import exception.InvalidFileManagerTypeException;
 
 public enum FileManagerType {
-    CSV(1, "Writing and reading files in csv form"),
-    SERIALIZABLE(2, "Serialized file writing and reading");
+    CSV(1, "writing and reading files in csv form"),
+    SERIALIZABLE(2, "serialized file writing and reading");
 
     private final int value;
     private final String description;
@@ -12,14 +12,6 @@ public enum FileManagerType {
     FileManagerType(int value, String description) {
         this.value = value;
         this.description = description;
-    }
-
-    public int getValue() {
-        return value;
-    }
-
-    public String getDescription() {
-        return description;
     }
 
     public static FileManagerType createFromInt(int value) {

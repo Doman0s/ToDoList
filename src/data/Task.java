@@ -27,6 +27,15 @@ public class Task implements Comparable<Task>, Serializable {
         this(name, description, LocalDate.now(), deadline, Status.TO_DO, priority);
     }
 
+    public Task(Task original) {
+        this.name = original.name;
+        this.description = original.description;
+        this.creationDate = original.creationDate;
+        this.deadline = original.deadline;
+        this.status = original.status;
+        this.priority = original.priority;
+    }
+
     public String getName() {
         return name;
     }
@@ -37,16 +46,8 @@ public class Task implements Comparable<Task>, Serializable {
         this.name = name;
     }
 
-    public String getDescription() {
-        return description;
-    }
-
     public void setDescription(String description) {
         this.description = description;
-    }
-
-    public LocalDate getCreationDate() {
-        return creationDate;
     }
 
     public LocalDate getDeadline() {
@@ -55,10 +56,6 @@ public class Task implements Comparable<Task>, Serializable {
 
     public void setDeadline(LocalDate deadline) {
         this.deadline = deadline;
-    }
-
-    public Status getStatus() {
-        return status;
     }
 
     public void setStatus(Status status) {
@@ -96,9 +93,13 @@ public class Task implements Comparable<Task>, Serializable {
 
     @Override
     public String toString() {
-        return name + " | " +
-                "Description: " + description.substring(0, Math.min(description.length(), 20)) + "... | " +
-                "Deadline: " + deadline + " | " +
-                "Priority: " + priority.name();
+        // Shorten name if it's longer than 20 characters
+        String shortenedName = name.length() > 20 ? name.substring(0, 20) + "..." : name;
+
+        // Shorten description if it's longer than 30 characters
+        String shortenedDescription = description.length() > 30 ? description.substring(0, 30) + "..." : description;
+
+        return String.format("%-23s | %-33s | %-10s | %-10s",
+                shortenedName, shortenedDescription, deadline, priority.name());
     }
 }

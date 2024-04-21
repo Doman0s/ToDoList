@@ -42,15 +42,15 @@ public class DataReader {
     public boolean readAndEditTask(Task task) {
         boolean editedCorrectly = true;
 
+        printer.printLine("");
         printer.printLine("Old task data");
         printer.printLine(task.getFullInfo());
 
         String[] taskData = readDataForTaskEditing();
 
         if (!taskData[2].isEmpty()) {
-            LocalDate deadline;
             try {
-                deadline = LocalDate.parse(taskData[2]);
+                LocalDate deadline = LocalDate.parse(taskData[2], FORMATTER);
                 if (deadline.isAfter(LocalDate.now())) {
                     task.setDeadline(deadline);
                 } else {
@@ -85,22 +85,23 @@ public class DataReader {
         return editedCorrectly;
     }
 
+    //reading all data as String
     public String[] readDataForTaskEditing() {
         String[] taskData = new String[4];
 
         printer.printLine("\nEnter new data (leave empty to keep old value):");
         printer.printLine("Name");
-        taskData[0] = scanner.nextLine(); // name
+        taskData[0] = scanner.nextLine();
 
         printer.printLine("Description");
-        taskData[1] = scanner.nextLine(); // description
+        taskData[1] = scanner.nextLine();
 
         printer.printLine("Deadline - format (DD-MM-YYYY)");
-        taskData[2] = scanner.nextLine(); // deadline
+        taskData[2] = scanner.nextLine();
 
         printer.printLine("Priority");
         printAllPriorities();
-        taskData[3] = scanner.nextLine(); //priority
+        taskData[3] = scanner.nextLine();
 
         return taskData;
     }

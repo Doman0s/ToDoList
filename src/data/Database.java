@@ -3,7 +3,6 @@ package data;
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class Database implements Serializable {
     private int tasksCreated;
@@ -54,7 +53,6 @@ public class Database implements Serializable {
 
         tasks.get(key).add(task);
         sortTasksByPriority(key);
-        setTasksCreated(tasksCreated + 1);
     }
 
     private void sortTasksByPriority(LocalDate key) {

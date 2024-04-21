@@ -25,6 +25,12 @@ public class TaskService {
 
     public void addTask(Task task) {
         database.addTask(task);
+        database.setTasksCreated(database.getTasksCreated() + 1);
+    }
+
+    //adding task without increasing created tasks number
+    public void addTaskSilently(Task task) {
+        database.addTask(task);
     }
 
     public void removeTask(Task task) {

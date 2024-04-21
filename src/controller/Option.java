@@ -8,16 +8,17 @@ public enum Option {
     PRINT_TOMORROWS_TASKS(2, "Print tomorrow's tasks"),
     ADD_TASK(3, "Add new task"),
     END_TODAYS_TASK(4, "End today's top task"),
-    PRINT_FUTURE_TASKS(5, "Print all tasks"),
-    END_CUSTOM_TASK(6, "End custom task"),
-    EDIT_TASK(7, "Edit task"),
-    DELETE_TASK(8, "Delete task"),
-    FIND_TASK_BY_NAME(9, "Find task by name"),
-    FIND_TASKS_BY_DATE(10, "Find tasks by date"),
-    SHOW_STATISTICS(11, "Show statistics"),
-    CLEAR_STATISTICS(12, "Clear statistics"),
-    SHOW_HISTORY(13, "Show task history"),
-    CLEAR_HISTORY(14, "Clear history");
+    PRINT_TASK_FULL_DATA(5, "Print full task details"),
+    PRINT_FUTURE_TASKS(6, "Print all tasks"),
+    END_CUSTOM_TASK(7, "End custom task"),
+    EDIT_TASK(8, "Edit task"),
+    DELETE_TASK(9, "Delete task"),
+    FIND_TASK_BY_NAME(10, "Find task by name"),
+    FIND_TASKS_BY_DATE(11, "Find tasks by date"),
+    SHOW_STATISTICS(12, "Show statistics"),
+    CLEAR_STATISTICS(13, "Clear statistics"),
+    SHOW_HISTORY(14, "Show task history"),
+    CLEAR_HISTORY(15, "Clear history");
 
     private final int value;
     private final String description;
@@ -25,14 +26,6 @@ public enum Option {
     Option(int value, String description) {
         this.value = value;
         this.description = description;
-    }
-
-    public int getValue() {
-        return value;
-    }
-
-    public String getDescription() {
-        return description;
     }
 
     static Option createFromInt(int value) {
@@ -45,6 +38,7 @@ public enum Option {
 
     @Override
     public String toString() {
-        return value + " - " + description;
+        String formattedValue = String.format("%2d", value);
+        return formattedValue + " - " + description;
     }
 }

@@ -19,13 +19,13 @@ public class FileManagerFactory {
         return switch (type) {
             case CSV -> getCsvFileManager();
             case SERIALIZABLE -> getSerializableFileManager();
-            default -> throw new IllegalArgumentException("File manager like that doesn't exist");
         };
     }
 
     private FileManagerType readCorrectFileManagerType() {
         printer.printLine("Specify in what form you want to read and write data.");
         printFileManagerTypes();
+        printer.promptCharacter();
 
         FileManagerType type = null;
         boolean typeOk = false;

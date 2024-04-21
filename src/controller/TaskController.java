@@ -32,12 +32,6 @@ public class TaskController {
         }
     }
 
-    //TODO
-    //1.Change the listing style, instead sout use souf with custom length for all variables
-    //2.Code is repeating in methods 7, 8, 9
-    //3.Task editing doesn't work
-    //4.ArrayList to store sorted tasks (sorting them all the time) is a bad idea...
-
     public void mainLoop() {
         Option option;
 
@@ -85,12 +79,13 @@ public class TaskController {
             case PRINT_TOMORROWS_TASKS -> printTomorrowsTasks();
             case ADD_TASK -> addTask();
             case END_TODAYS_TASK -> endTodaysTopTask();
+            case PRINT_TASK_FULL_DATA -> printTaskFullData();
             case PRINT_FUTURE_TASKS -> printFutureTasks();
             case END_CUSTOM_TASK -> endCustomTask();
             case EDIT_TASK -> editTask();
             case DELETE_TASK -> deleteTask();
             case FIND_TASK_BY_NAME -> findTaskByName();
-            case FIND_TASKS_BY_DATE -> filterTasks();
+            case FIND_TASKS_BY_DATE -> findTasksByDate();
             case SHOW_STATISTICS -> showStatistics();
             case CLEAR_STATISTICS -> clearStatistics();
             case SHOW_HISTORY -> showHistory();
@@ -149,6 +144,31 @@ public class TaskController {
         }
     }
 
+    private void printTaskFullData() {
+        printer.printLine("Enter the date of tasks to be displayed, format (DD-MM-YYYY).");
+        printer.promptCharacter();
+        LocalDate date = reader.readDate();
+        List<Task> tasks = taskService.findTasksByDate(date);
+
+        if (tasks != null && !tasks.isEmpty()) {
+            printer.printLine("");
+            printer.printLine("Tasks of " + date);
+            printer.printTasksWithIndex(tasks);
+            int index = getTaskIndex();
+
+            try {
+                Task task = taskService.getTaskByDateAndIndex(date, index);
+                printer.printLine("");
+                printer.printLine("Full task details");
+                printer.printLine(task.getFullInfo());
+            } catch (IndexOutOfBoundsException e) {
+                printer.printLine("Incorrect task number.");
+            }
+        } else {
+            printer.printLine("No tasks found for date " + date + ".");
+        }
+    }
+
     private void printFutureTasks() {
         Map<LocalDate, List<Task>> tasks = taskService.getTasks();
 
@@ -159,7 +179,6 @@ public class TaskController {
         }
     }
 
-    //TODO test these 3 methods below for exceptions
     private void endCustomTask() {
         printer.printLine("Enter the date for the task operation, format (DD-MM-YYYY).");
         printer.promptCharacter();
@@ -167,6 +186,8 @@ public class TaskController {
         List<Task> tasks = taskService.findTasksByDate(date);
 
         if (tasks != null && !tasks.isEmpty()) {
+            printer.printLine("");
+            printer.printLine("Tasks of " + date);
             printer.printTasksWithIndex(tasks);
             int index = getTaskIndex();
 
@@ -189,17 +210,25 @@ public class TaskController {
         List<Task> tasks = taskService.findTasksByDate(date);
 
         if (tasks != null && !tasks.isEmpty()) {
+            printer.printLine("");
+            printer.printLine("Tasks of " + date);
             printer.printTasksWithIndex(tasks);
             int index = getTaskIndex();
 
             try {
-                Task task = taskService.getTaskByDateAndIndex(date, index);
-                boolean editedSuccessfully = reader.readAndEditTask(task);
+                Task oldTask = taskService.getTaskByDateAndIndex(date, index);
+                //copy old task data to delete this task from database
+                Task editedTask = new Task(oldTask);
+                boolean editedSuccessfully = reader.readAndEditTask(editedTask);
+
                 if (editedSuccessfully) {
-                    printer.printLine("Task  \"" + task.getName() + "\" edited successfully.");
+                    printer.printLine("Task \"" + oldTask.getName() + "\" edited successfully.");
                 } else {
                     printer.printLine("Error occurred while editing the task.");
                 }
+
+                taskService.removeTask(oldTask);
+                taskService.addTaskSilently(editedTask);
             } catch (IndexOutOfBoundsException e) {
                 printer.printLine("Incorrect task number.");
             } catch (NullPointerException | DeadlineDateMustBeFuture e) {
@@ -217,6 +246,8 @@ public class TaskController {
         List<Task> tasks = taskService.findTasksByDate(date);
 
         if (tasks != null && !tasks.isEmpty()) {
+            printer.printLine("");
+            printer.printLine("Tasks of " + date);
             printer.printTasksWithIndex(tasks);
             int index = getTaskIndex();
 
@@ -230,15 +261,6 @@ public class TaskController {
         } else {
             printer.printLine("No tasks found for date " + date + ".");
         }
-    }
-
-    private LocalDate getDateAndPrintTasksForThisDate() {
-        printer.printLine("Enter the date for the task operation, format (DD-MM-YYYY).");
-        printer.promptCharacter();
-        LocalDate date = reader.readDate();
-        printTasksForDate(date);
-
-        return date;
     }
 
     private int getTaskIndex() {
@@ -257,11 +279,11 @@ public class TaskController {
         if (taskByName == null || taskByName.isEmpty()) {
             printer.printLine("No tasks found.");
         } else {
-            printer.printTasks(taskByName);
+            printer.printTasksWithIndex(taskByName);
         }
     }
 
-    private void filterTasks() {
+    private void findTasksByDate() {
         printer.printLine("Enter the date of tasks to be displayed, format (DD-MM-YYYY).");
         printer.promptCharacter();
         LocalDate filterDate = reader.readDate();
@@ -290,7 +312,7 @@ public class TaskController {
             printer.printLine("History is empty.");
         } else {
             printer.printLine("History");
-            printer.printTasks(taskService.getHistory());
+            printer.printTasksWithIndex(taskService.getHistory());
         }
     }
 
