@@ -12,6 +12,7 @@ To get started with this project:
 - Add, remove, update, and search for tasks.
 - Tasks are organized by date and can be sorted by priority, making it easy to manage deadlines and important tasks.
 - Track task history and view basic task completion statistics, which can be displayed and deleted as needed.
+- Automatic Deadline Monitoring: At each application startup, it checks for tasks whose deadlines have passed and automatically marks them as 'failed'.
 - Data is stored and retrieved through file-based storage, supporting both CSV format and serialized objects. A CSV file with sample data is included for testing purposes.
 - Robust error handling ensures the application is resilient to incorrect user input and malformed data in files.
 
