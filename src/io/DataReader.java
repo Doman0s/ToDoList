@@ -85,7 +85,7 @@ public class DataReader {
         return editedCorrectly;
     }
 
-    //reading all data as String
+    //reading all task data as String
     public String[] readDataForTaskEditing() {
         String[] taskData = new String[4];
 

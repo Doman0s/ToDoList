@@ -79,8 +79,8 @@ public class TaskController {
             case PRINT_TOMORROWS_TASKS -> printTomorrowsTasks();
             case ADD_TASK -> addTask();
             case END_TODAYS_TASK -> endTodaysTopTask();
-            case PRINT_TASK_FULL_DATA -> printTaskFullData();
             case PRINT_FUTURE_TASKS -> printFutureTasks();
+            case PRINT_TASK_FULL_DATA -> printTaskFullData();
             case END_CUSTOM_TASK -> endCustomTask();
             case EDIT_TASK -> editTask();
             case DELETE_TASK -> deleteTask();
@@ -144,31 +144,6 @@ public class TaskController {
         }
     }
 
-    private void printTaskFullData() {
-        printer.printLine("Enter the date of tasks to be displayed, format (DD-MM-YYYY).");
-        printer.promptCharacter();
-        LocalDate date = reader.readDate();
-        List<Task> tasks = taskService.findTasksByDate(date);
-
-        if (tasks != null && !tasks.isEmpty()) {
-            printer.printLine("");
-            printer.printLine("Tasks of " + date);
-            printer.printTasksWithIndex(tasks);
-            int index = getTaskIndex();
-
-            try {
-                Task task = taskService.getTaskByDateAndIndex(date, index);
-                printer.printLine("");
-                printer.printLine("Full task details");
-                printer.printLine(task.getFullInfo());
-            } catch (IndexOutOfBoundsException e) {
-                printer.printLine("Incorrect task number.");
-            }
-        } else {
-            printer.printLine("No tasks found for date " + date + ".");
-        }
-    }
-
     private void printFutureTasks() {
         Map<LocalDate, List<Task>> tasks = taskService.getTasks();
 
@@ -179,7 +154,7 @@ public class TaskController {
         }
     }
 
-    private void endCustomTask() {
+    private LocalDate getDateAndPrintTasks() {
         printer.printLine("Enter the date for the task operation, format (DD-MM-YYYY).");
         printer.promptCharacter();
         LocalDate date = reader.readDate();
@@ -189,78 +164,11 @@ public class TaskController {
             printer.printLine("");
             printer.printLine("Tasks of " + date);
             printer.printTasksWithIndex(tasks);
-            int index = getTaskIndex();
-
-            try {
-                Task task = taskService.getTaskByDateAndIndex(date, index);
-                taskService.endTask(task);
-                printer.printLine("Task \"" + task.getName() + "\" completed successfully.");
-            } catch (IndexOutOfBoundsException e) {
-                printer.printLine("Incorrect task number.");
-            }
         } else {
             printer.printLine("No tasks found for date " + date + ".");
+            return null;
         }
-    }
-
-    private void editTask() {
-        printer.printLine("Enter the date for the task operation, format (DD-MM-YYYY).");
-        printer.promptCharacter();
-        LocalDate date = reader.readDate();
-        List<Task> tasks = taskService.findTasksByDate(date);
-
-        if (tasks != null && !tasks.isEmpty()) {
-            printer.printLine("");
-            printer.printLine("Tasks of " + date);
-            printer.printTasksWithIndex(tasks);
-            int index = getTaskIndex();
-
-            try {
-                Task oldTask = taskService.getTaskByDateAndIndex(date, index);
-                //copy old task data to delete this task from database
-                Task editedTask = new Task(oldTask);
-                boolean editedSuccessfully = reader.readAndEditTask(editedTask);
-
-                if (editedSuccessfully) {
-                    printer.printLine("Task \"" + oldTask.getName() + "\" edited successfully.");
-                } else {
-                    printer.printLine("Error occurred while editing the task.");
-                }
-
-                taskService.removeTask(oldTask);
-                taskService.addTaskSilently(editedTask);
-            } catch (IndexOutOfBoundsException e) {
-                printer.printLine("Incorrect task number.");
-            } catch (NullPointerException | DeadlineDateMustBeFuture e) {
-                printer.printLine(e.getMessage());
-            }
-        } else {
-            printer.printLine("No tasks found for date " + date + ".");
-        }
-    }
-
-    private void deleteTask() {
-        printer.printLine("Enter the date for the task operation, format (DD-MM-YYYY).");
-        printer.promptCharacter();
-        LocalDate date = reader.readDate();
-        List<Task> tasks = taskService.findTasksByDate(date);
-
-        if (tasks != null && !tasks.isEmpty()) {
-            printer.printLine("");
-            printer.printLine("Tasks of " + date);
-            printer.printTasksWithIndex(tasks);
-            int index = getTaskIndex();
-
-            try {
-                Task task = taskService.getTaskByDateAndIndex(date, index);
-                taskService.removeTask(task);
-                printer.printLine("Task \"" + task.getName() + "\" deleted successfully.");
-            } catch (IndexOutOfBoundsException e) {
-                printer.printLine("Incorrect task number.");
-            }
-        } else {
-            printer.printLine("No tasks found for date " + date + ".");
-        }
+        return date;
     }
 
     private int getTaskIndex() {
@@ -268,6 +176,73 @@ public class TaskController {
         printer.promptCharacter();
 
         return reader.getInt() - 1;
+    }
+
+    private void printTaskFullData() {
+        LocalDate date = getDateAndPrintTasks();
+        if (date == null) return;
+        int index = getTaskIndex();
+
+        try {
+            Task task = taskService.getTaskByDateAndIndex(date, index);
+            printer.printLine("");
+            printer.printLine("Full task details");
+            printer.printLine(task.getFullInfo());
+        } catch (IndexOutOfBoundsException e) {
+            printer.printLine("Incorrect task number.");
+        }
+    }
+
+    private void endCustomTask() {
+        LocalDate date = getDateAndPrintTasks();
+        if (date == null) return;
+        int index = getTaskIndex();
+
+        try {
+            Task task = taskService.getTaskByDateAndIndex(date, index);
+            taskService.endTask(task);
+            printer.printLine("Task \"" + task.getName() + "\" completed successfully.");
+        } catch (IndexOutOfBoundsException e) {
+            printer.printLine("Incorrect task number.");
+        }
+    }
+
+    private void editTask() {
+        LocalDate date = getDateAndPrintTasks();
+        if (date == null) return;
+        int index = getTaskIndex();
+
+        try {
+            Task oldTask = taskService.getTaskByDateAndIndex(date, index);
+            Task editedTask = new Task(oldTask); //copy old task data
+            boolean editedSuccessfully = reader.readAndEditTask(editedTask);
+
+            if (editedSuccessfully) {
+                printer.printLine("Task \"" + oldTask.getName() + "\" edited successfully.");
+                taskService.removeTask(oldTask);
+                taskService.addTaskSilently(editedTask);
+            } else {
+                printer.printLine("Error occurred while editing the task.");
+            }
+        } catch (IndexOutOfBoundsException e) {
+            printer.printLine("Incorrect task number.");
+        } catch (NullPointerException | DeadlineDateMustBeFuture e) {
+            printer.printLine(e.getMessage());
+        }
+    }
+
+    private void deleteTask() {
+        LocalDate date = getDateAndPrintTasks();
+        if (date == null) return;
+        int index = getTaskIndex();
+
+        try {
+            Task task = taskService.getTaskByDateAndIndex(date, index);
+            taskService.removeTask(task);
+            printer.printLine("Task \"" + task.getName() + "\" deleted successfully.");
+        } catch (IndexOutOfBoundsException e) {
+            printer.printLine("Incorrect task number.");
+        }
     }
 
     private void findTaskByName() {
